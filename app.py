@@ -28,14 +28,12 @@ model, is_fine_tuned = load_model()
 st.title("Sentence-to-Sentence Semantic Matcher (Two Inputs)")
 st.write("Compare each sentence from Box A with each sentence from Box B.")
 
-# Show model info in sidebar
+# Show model info in sidebar (optional - only if fine-tuned model is used)
 with st.sidebar:
     st.header("Model Info")
     if is_fine_tuned:
         st.success("✓ Using fine-tuned model")
-    else:
-        st.info("Using base model: `all-mpnet-base-v2`")
-        st.caption("To use a custom fine-tuned model, train one using `Train_model2.py` and place it in the `fine_tuned_model/` directory.")
+    # Silently use base model if fine-tuned model is not available
 
 # Move threshold slider before the input areas
 threshold = st.slider(
@@ -46,6 +44,8 @@ threshold = st.slider(
     step=0.01,
     key='threshold_slider'
 )
+# Update session state when slider changes
+st.session_state.threshold = threshold
 
 # Input areas
 sentences_a_input = st.text_area("Enter Sentences (Box A - one per line):")
@@ -55,23 +55,30 @@ if st.button("Compare Sentences"):
     if not sentences_a_input.strip() or not sentences_b_input.strip():
         st.warning("Please enter sentences in both boxes.")
     else:
-        sentences_a = [s.strip() for s in sentences_a_input.strip().split("\n") if s]
-        sentences_b = [s.strip() for s in sentences_b_input.strip().split("\n") if s]
-
-        embeddings_a = model.encode(sentences_a)
-        embeddings_b = model.encode(sentences_b)
-
-        st.markdown("### Results:")
-        for i, sentence_a in enumerate(sentences_a):
-            matches_found = False
-            st.write(f"Matches for: `{sentence_a}`")
+        try:
+            sentences_a = [s.strip() for s in sentences_a_input.strip().split("\n") if s.strip()]
+            sentences_b = [s.strip() for s in sentences_b_input.strip().split("\n") if s.strip()]
             
-            for j, sentence_b in enumerate(sentences_b):
-                sim = cosine_similarity([embeddings_a[i]], [embeddings_b[j]])[0][0]
-                if sim >= threshold:
-                    matches_found = True
-                    st.write(f"- `{sentence_b}` (Similarity: {sim:.2f})")
-            
-            if not matches_found:
-                st.write("- No matches found above threshold")
-            st.markdown("---")
+            if not sentences_a or not sentences_b:
+                st.warning("Please enter at least one sentence in each box.")
+            else:
+                embeddings_a = model.encode(sentences_a)
+                embeddings_b = model.encode(sentences_b)
+
+                st.markdown("### Results:")
+                for i, sentence_a in enumerate(sentences_a):
+                    matches_found = False
+                    st.write(f"Matches for: `{sentence_a}`")
+                    
+                    for j, sentence_b in enumerate(sentences_b):
+                        sim = cosine_similarity([embeddings_a[i]], [embeddings_b[j]])[0][0]
+                        if sim >= threshold:
+                            matches_found = True
+                            st.write(f"- `{sentence_b}` (Similarity: {sim:.2f})")
+                    
+                    if not matches_found:
+                        st.write("- No matches found above threshold")
+                    st.markdown("---")
+        except Exception as e:
+            st.error(f"An error occurred: {str(e)}")
+            st.info("Please try again or check your input.")
