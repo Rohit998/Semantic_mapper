@@ -16,19 +16,26 @@ def load_model():
     # Check if the fine-tuned model directory exists
     if os.path.exists(model_path) and os.path.isdir(model_path):
         try:
-            return SentenceTransformer(model_path)
+            return SentenceTransformer(model_path), True
         except Exception as e:
-            st.warning(f"Could not load fine-tuned model: {e}. Using base model instead.")
-            return SentenceTransformer('all-mpnet-base-v2')
+            return SentenceTransformer('all-mpnet-base-v2'), False
     else:
         # Use base model if fine-tuned model doesn't exist
-        st.info("Fine-tuned model not found. Using base model 'all-mpnet-base-v2'. Train a model using Train_model2.py to use a custom fine-tuned model.")
-        return SentenceTransformer('all-mpnet-base-v2')
+        return SentenceTransformer('all-mpnet-base-v2'), False
 
-model = load_model()
+model, is_fine_tuned = load_model()
 
 st.title("Sentence-to-Sentence Semantic Matcher (Two Inputs)")
 st.write("Compare each sentence from Box A with each sentence from Box B.")
+
+# Show model info in sidebar
+with st.sidebar:
+    st.header("Model Info")
+    if is_fine_tuned:
+        st.success("✓ Using fine-tuned model")
+    else:
+        st.info("Using base model: `all-mpnet-base-v2`")
+        st.caption("To use a custom fine-tuned model, train one using `Train_model2.py` and place it in the `fine_tuned_model/` directory.")
 
 # Move threshold slider before the input areas
 threshold = st.slider(
