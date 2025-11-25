@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -9,9 +10,20 @@ if 'threshold' not in st.session_state:
 # Load fine-tuned model
 @st.cache_resource  # Cache the model to prevent reloading
 def load_model():
-    # Use the absolute path to your fine-tuned model
-    model_path = "./fine_tuned_model"  # Adjust this path to where your model is actually saved
-    return SentenceTransformer(model_path)
+    # Try to load fine-tuned model, fall back to base model if not found
+    model_path = "./fine_tuned_model"
+    
+    # Check if the fine-tuned model directory exists
+    if os.path.exists(model_path) and os.path.isdir(model_path):
+        try:
+            return SentenceTransformer(model_path)
+        except Exception as e:
+            st.warning(f"Could not load fine-tuned model: {e}. Using base model instead.")
+            return SentenceTransformer('all-mpnet-base-v2')
+    else:
+        # Use base model if fine-tuned model doesn't exist
+        st.info("Fine-tuned model not found. Using base model 'all-mpnet-base-v2'. Train a model using Train_model2.py to use a custom fine-tuned model.")
+        return SentenceTransformer('all-mpnet-base-v2')
 
 model = load_model()
 
