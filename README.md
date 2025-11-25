@@ -1,4 +1,4 @@
-# Sentence Matcher - Dual Box Semantic Similarity Tool
+# Sentence Matcher - Semantic Similarity Tool
 
 A semantic sentence matching application that uses fine-tuned sentence transformers to compare and match sentences between two sets.
 This project includes a Streamlit web interface for interactive sentence-to-sentence comparison and tools for training, testing, and comparing models.
