@@ -23,17 +23,10 @@ def load_model():
         # Use base model if fine-tuned model doesn't exist
         return SentenceTransformer('all-mpnet-base-v2'), False
 
-model, is_fine_tuned = load_model()
+model, _ = load_model()
 
 st.title("Sentence-to-Sentence Semantic Matcher (Two Inputs)")
 st.write("Compare each sentence from Box A with each sentence from Box B.")
-
-# Show model info in sidebar (optional - only if fine-tuned model is used)
-with st.sidebar:
-    st.header("Model Info")
-    if is_fine_tuned:
-        st.success("✓ Using fine-tuned model")
-    # Silently use base model if fine-tuned model is not available
 
 # Move threshold slider before the input areas
 threshold = st.slider(
